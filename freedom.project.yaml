@@ -31,9 +31,9 @@
     "accountable_team": null,
     "external_owner": {
       "type": "Organization",
-      "account_id": "331546855",
-      "login": "FreeTWAI-AI",
-      "html_url": "https://github.com/FreeTWAI-AI"
+      "account_id": "342048686",
+      "login": "FreeTWAI",
+      "html_url": "https://github.com/FreeTWAI"
     },
     "accountable_party_ref": "user:teddashh",
     "module_stewardship_ref": null,
@@ -50,8 +50,8 @@
     "security_contact": "https://github.com/teddashh"
   },
   "repository": {
-    "full_name": "FreeTWAI-AI/freedom-storefront",
-    "html_url": "https://github.com/FreeTWAI-AI/freedom-storefront",
+    "full_name": "FreeTWAI/freedom-storefront",
+    "html_url": "https://github.com/FreeTWAI/freedom-storefront",
     "repository_id": "1378081447",
     "default_branch": "main",
     "visibility": "public",
@@ -65,7 +65,7 @@
     "requested_trust_label": "incubating",
     "source": "generated",
     "canonical_platform_url": "https://freetwai.com/",
-    "github_pages_url": "https://freetwai-ai.github.io/freedom-storefront/",
+    "github_pages_url": "https://freetwai.github.io/freedom-storefront/",
     "exception_reason": null,
     "required_sections": [
       "identity_and_status",
@@ -179,9 +179,9 @@
     ]
   },
   "links": {
-    "documentation": "https://github.com/FreeTWAI-AI/freedom-storefront/blob/main/README.md",
+    "documentation": "https://github.com/FreeTWAI/freedom-storefront/blob/main/README.md",
     "demo": null,
-    "support": "https://github.com/FreeTWAI-AI/freedom-storefront/issues",
-    "issues": "https://github.com/FreeTWAI-AI/freedom-storefront/issues"
+    "support": "https://github.com/FreeTWAI/freedom-storefront/issues",
+    "issues": "https://github.com/FreeTWAI/freedom-storefront/issues"
   }
 }

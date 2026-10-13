@@ -11,18 +11,18 @@
 
 本 repo 的維護者負責「可 Fork 的商店模板、薄 SDK 與私人預覽，供電商與銷售公會改造。」這個模組；公會職稱與自填 GitHub slug 不授予寫入權。
 
-程式／內容入口：[templates/](templates/)、[packages/storefront-sdk/](packages/storefront-sdk/)、[packages/templates/](packages/templates/)、[client/](client/)、[scripts/run-client.mjs](scripts/run-client.mjs)。協作先讀 [CONTRIBUTING.md](CONTRIBUTING.md)，讓 Agent 讀 [AGENTS.md](AGENTS.md)；從[本倉 Issues](https://github.com/FreeTWAI-AI/freedom-storefront/issues)認領、[查看既有 PR](https://github.com/FreeTWAI-AI/freedom-storefront/pulls)避免重工。
+程式／內容入口：[templates/](templates/)、[packages/storefront-sdk/](packages/storefront-sdk/)、[packages/templates/](packages/templates/)、[client/](client/)、[scripts/run-client.mjs](scripts/run-client.mjs)。協作先讀 [CONTRIBUTING.md](CONTRIBUTING.md)，讓 Agent 讀 [AGENTS.md](AGENTS.md)；從[本倉 Issues](https://github.com/FreeTWAI/freedom-storefront/issues)認領、[查看既有 PR](https://github.com/FreeTWAI/freedom-storefront/pulls)避免重工。
 
-商店與商品事實由中央平台保存。獨立 token 只能讀取已核准的一家商店；寫入 helper 僅供同站受驗證整合，不能用讀取 token 呼叫。私人供貨價、客戶資料與憑證不能進 HTML 或 Pages。 跨 repo 的協定由[中央平台](https://github.com/FreeTWAI-AI/freedom-platform)維護。
+商店與商品事實由中央平台保存。獨立 token 只能讀取已核准的一家商店；寫入 helper 僅供同站受驗證整合，不能用讀取 token 呼叫。私人供貨價、客戶資料與憑證不能進 HTML 或 Pages。 跨 repo 的協定由[中央平台](https://github.com/FreeTWAI/freedom-platform)維護。
 <!-- freedom-repository-guide:end -->
 
-可 fork 的商店模板、薄 SDK 與離線 HTML 預覽工具。商品、供貨條件、Store、選品版本與人的確認由 [`freedom-platform`](https://github.com/FreeTWAI-AI/freedom-platform) 的中央 API 保存。本 repo 不建立第二套會員、商品資料庫或金流帳。
+可 fork 的商店模板、薄 SDK 與離線 HTML 預覽工具。商品、供貨條件、Store、選品版本與人的確認由 [`freedom-platform`](https://github.com/FreeTWAI/freedom-platform) 的中央 API 保存。本 repo 不建立第二套會員、商品資料庫或金流帳。
 
 本階段是 **會員內部預覽**：可讀取已登入使用者的商店資料，建立商店／選品草稿、提出供貨確認，以及生成私人本機版面。公開商店 API、SellerParty 啟用、買家 purpose token、checkout、訂單、付款與正式發布尚未在這個模板實作。
 
 ## Fork 後連回自己的平台商店
 
-[先建立我的商店](https://freetwai.com/#retail) · [Fork 商店模板](https://github.com/FreeTWAI-AI/freedom-storefront/fork) · [核准／撤銷連線](https://freetwai.com/#account)
+[先建立我的商店](https://freetwai.com/#retail) · [Fork 商店模板](https://github.com/FreeTWAI/freedom-storefront/fork) · [核准／撤銷連線](https://freetwai.com/#account)
 
 這個 repo 現在支援會員核准的獨立讀取連線。先在網站註冊、完成定位並建立商店，再執行：
 
@@ -119,7 +119,7 @@ API 驗證真正的使用者／社群／商店所有權。SDK 的篩選只是避
 
 ## 後續公開商店
 
-依 [主計畫 §4](https://github.com/FreeTWAI-AI/freedom-platform/blob/main/docs/platform-plan/02-architecture-repositories.md)，要上公開商店，需要先在 Platform 建立 Store 的 SellerParty、單一 buyer-facing seller collection connection、allowed origins 與 catalog selection，再提供限定欄位的 public read／checkout API。瀏覽器只帶 public store ID 與短效 purpose token；付款 secret 和資料庫連線不進模板或 bundle。
+依 [主計畫 §4](https://github.com/FreeTWAI/freedom-platform/blob/main/docs/platform-plan/02-architecture-repositories.md)，要上公開商店，需要先在 Platform 建立 Store 的 SellerParty、單一 buyer-facing seller collection connection、allowed origins 與 catalog selection，再提供限定欄位的 public read／checkout API。瀏覽器只帶 public store ID 與短效 purpose token；付款 secret 和資料庫連線不進模板或 bundle。
 
 本 repo 沒有自行補一個 public endpoint、把私人 catalog 直接發布，或把供貨確認解讀成交易完成。
 
@@ -137,5 +137,7 @@ The token comes from the existing member-approved connection and must stay outsi
 ```sh
 node scripts/verify-consumer-libraries.mjs FreeTWAI-AI/freedom-storefront EXPECTED_PLATFORM_SHA --source-root /path/to/freedom-platform
 ```
+
+The repository argument is the historical provenance identity required by this pinned verifier and `consumer-libraries.lock.json`. Current GitHub and clone URLs use `FreeTWAI`.
 
 After the exact source commit is publicly available, use `--remote` instead of `--source-root /path/to/freedom-platform`.
