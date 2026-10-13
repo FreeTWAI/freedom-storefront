@@ -135,7 +135,9 @@ const workspace = await loadConnectedStorefront({ origin: 'https://freetwai.com'
 The token comes from the existing member-approved connection and must stay outside the repository. The existing session-based SDK and preview v1 bundle are unchanged. `consumer-libraries.lock.json` pins this new shared library separately; it is source provenance, not release approval or complete runtime coverage. Verify against an independently selected source SHA:
 
 ```sh
-node scripts/verify-consumer-libraries.mjs FreeTWAI/freedom-storefront EXPECTED_PLATFORM_SHA --source-root /path/to/freedom-platform
+node scripts/verify-consumer-libraries.mjs FreeTWAI-AI/freedom-storefront EXPECTED_PLATFORM_SHA --source-root /path/to/freedom-platform
 ```
+
+The repository argument is the historical provenance identity required by this pinned verifier and `consumer-libraries.lock.json`. Current GitHub and clone URLs use `FreeTWAI`.
 
 After the exact source commit is publicly available, use `--remote` instead of `--source-root /path/to/freedom-platform`.
