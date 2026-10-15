@@ -4,7 +4,7 @@ import { loadStorefront, createStore, selectProduct, requestSupply } from '../pa
 
 function workspace() {
   const data = {
-    listCatalog: { items: [{ product_id: 'product-a', current_offer: { offer_version_id: 'offer-v2' } }] },
+    listCatalog: { items: [{ product_id: 'product-a', current_offer: { offer_version_id: 'offer-v2' } }], next_offset: null },
     listStores: { items: [{ store_id: 'store-a' }, { store_id: 'store-b' }] },
     listListings: { items: [{ listing_id: 'a', store_id: 'store-a' }, { listing_id: 'b', store_id: 'store-b' }, { listing_id: 'foreign', store_id: 'foreign-store' }] },
   };
@@ -29,6 +29,51 @@ test('store-specific workspace excludes other stores and orphan listings without
 test('workspace without selection includes only listings attached to returned stores', async () => {
   const { client } = workspace();
   assert.deepEqual((await loadStorefront(client)).listings.map(row => row.listing_id), ['a', 'b']);
+});
+
+test('workspace reads the complete catalog, including empty and exact-page endings', async () => {
+  for (const count of [0, 50, 101]) {
+    const { data } = workspace();
+    const products = Array.from({ length: count }, (_, index) => ({ product_id: `product-${index}` }));
+    const offsets = [], pages = [];
+    const client = { async call(operation, options) {
+      if (operation !== 'listCatalog') return data[operation];
+      assert.equal(options.query.limit, 50);
+      const { offset } = options.query;
+      offsets.push(offset);
+      const page = { items: products.slice(offset, offset + 50), next_offset: offset + 50 < count ? offset + 50 : null };
+      pages.push(page);
+      return page;
+    } };
+    const result = await loadStorefront(client, { storeId: 'store-a' });
+    assert.deepEqual(result.catalog, products);
+    assert.deepEqual(offsets, count > 50 ? [0, 50, 100] : [0]);
+    assert.equal(pages[0].items.length, Math.min(count, 50));
+    assert.deepEqual(result.listings.map(row => row.listing_id), ['a']);
+  }
+});
+
+test('a later catalog authorization failure rejects the whole workspace without retry', async () => {
+  const { data } = workspace();
+  const failure = Object.assign(new Error('session expired'), { status: 401 });
+  const offsets = [];
+  const client = { async call(operation, options) {
+    if (operation !== 'listCatalog') return data[operation];
+    offsets.push(options.query.offset);
+    if (options.query.offset === 0) return { items: data.listCatalog.items, next_offset: 50 };
+    throw failure;
+  } };
+  await assert.rejects(loadStorefront(client), error => error === failure);
+  assert.deepEqual(offsets, [0, 50]);
+});
+
+test('invalid catalog continuation fails instead of returning partial data or looping', async () => {
+  for (const next_offset of [undefined, 0, -1, '50', 1.5]) {
+    const { client, data, calls } = workspace();
+    data.listCatalog.next_offset = next_offset;
+    await assert.rejects(loadStorefront(client), /next_offset/);
+    assert.equal(calls.filter(row => row.operation === 'listCatalog').length, 1);
+  }
 });
 
 test('unknown store and invalid API response fail closed', async () => {
