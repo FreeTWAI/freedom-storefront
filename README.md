@@ -108,12 +108,14 @@ await requestSupply(client, listing, { idempotencyKey: supplyIntentKey });
 
 | SDK 函式 | 共用 operation ID | 一致性 |
 | --- | --- | --- |
-| `loadStorefront` | `listCatalog`, `listStores`, `listListings` | 從目前 session 讀取；依 storeId 篩選並排除不屬於已回傳商店的選品 |
+| `loadStorefront` | `listCatalog`, `listStores`, `listListings` | 從目前 session 讀取；目錄依 `next_offset` 每頁最多 50 筆讀完，依 storeId 篩選並排除不屬於已回傳商店的選品 |
 | `createStore` | `createStore` | 明確傳入 idempotency key |
 | `selectProduct` | `createListing` | 保存 exact offer version；明確傳入 idempotency key |
 | `requestSupply` | `requestSupply` | 傳送 listing ID、已審閱 snapshot digest、aggregate version 與相同重試 key |
 
 API 驗證真正的使用者／社群／商店所有權。SDK 的篩選只是避免版面誤混資料，不是新的授權邊界。API 的拒絕、衝突與錯誤原樣交回 caller；SDK 不自動重試或生成新命令身分。版本衝突後重新讀取並讓人確認，新的操作才使用新 key。
+
+目錄讀取到 `next_offset: null` 才回傳完整工作區；後續任何一頁失敗，整次讀取會失敗，不把已取得的前幾頁當成完整目錄。空目錄仍正常回傳。使用更新後的 pinned client 核對平台協定，不略過版本相容性檢查。
 
 供貨量是 snapshot 記錄，沒有庫存保留；`accepted` 是內部供貨演練確認，沒有代表完成正式簽署、QC 或可收款。所有目前顯示金額遵循中央契約的 1/100 單位。
 
@@ -132,12 +134,12 @@ import { loadConnectedStorefront } from './src/index.mjs';
 const workspace = await loadConnectedStorefront({ origin: 'https://freetwai.com', token });
 ```
 
-The token comes from the existing member-approved connection and must stay outside the repository. The existing session-based SDK and preview v1 bundle are unchanged. `consumer-libraries.lock.json` pins this new shared library separately; it is source provenance, not release approval or complete runtime coverage. Verify against an independently selected source SHA:
+The token comes from the existing member-approved connection and must stay outside the repository. The session-based SDK uses its separately pinned preview bundle; `consumer-libraries.lock.json` preserves the shared read library's independent source pin. This is source provenance, not release approval or complete runtime coverage. Verify against an independently selected source SHA:
 
 ```sh
-node scripts/verify-consumer-libraries.mjs FreeTWAI-AI/freedom-storefront EXPECTED_PLATFORM_SHA --source-root /path/to/freedom-platform
+node scripts/verify-consumer-libraries.mjs FreeTWAI/freedom-storefront EXPECTED_PLATFORM_SHA --source-root /path/to/freedom-platform
 ```
 
-The repository argument is the historical provenance identity required by this pinned verifier and `consumer-libraries.lock.json`. Current GitHub and clone URLs use `FreeTWAI`.
+The verifier accepts the current `FreeTWAI` repository identity while preserving the historical identity recorded in the library lock. Use that library's independently selected source SHA, not the preview bundle's source SHA.
 
 After the exact source commit is publicly available, use `--remote` instead of `--source-root /path/to/freedom-platform`.

@@ -23,15 +23,23 @@ export async function loadStorefront(client, { storeId } = {}) {
   port(client);
   if (storeId !== undefined && (typeof storeId !== 'string' || !storeId.trim())) throw new TypeError('storeId must be a non-empty string.');
   const [catalogResponse, storesResponse, listingsResponse] = await Promise.all([
-    client.call('listCatalog'), client.call('listStores'), client.call('listListings'),
+    client.call('listCatalog', { query: { limit: 50, offset: 0 } }), client.call('listStores'), client.call('listListings'),
   ]);
-  const catalog = rows(catalogResponse, 'listCatalog');
+  const catalog = [...rows(catalogResponse, 'listCatalog')];
   const availableStores = rows(storesResponse, 'listStores');
   const availableListings = rows(listingsResponse, 'listListings');
   const stores = storeId === undefined ? availableStores : availableStores.filter(store => store.store_id === storeId);
   if (storeId !== undefined && stores.length !== 1) throw new Error('Requested store is unavailable in the current authenticated workspace.');
   const visibleStoreIds = new Set(stores.map(store => store.store_id));
   const listings = availableListings.filter(listing => visibleStoreIds.has(listing.store_id));
+  let page = catalogResponse, offset = 0;
+  while (page.next_offset !== null) {
+    const nextOffset = page.next_offset;
+    if (!Number.isSafeInteger(nextOffset) || nextOffset <= offset) throw new TypeError('listCatalog returned an invalid next_offset.');
+    page = await client.call('listCatalog', { query: { limit: 50, offset: nextOffset } });
+    catalog.push(...rows(page, 'listCatalog'));
+    offset = nextOffset;
+  }
   return structuredClone({
     schema_version: '1', mode: 'internal_preview', generated_at: new Date().toISOString(),
     store_id: storeId ?? null, catalog, stores, listings,
