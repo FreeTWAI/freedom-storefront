@@ -118,3 +118,85 @@ test('authorization and conflict errors propagate unchanged; adapter never retri
   await assert.rejects(createStore(client, {}, { idempotencyKey: 'x' }), error => error === conflict);
   assert.equal(calls, 1);
 });
+
+test('listCatalog pagination handles first page, last partial page, and offset beyond end', async () => {
+  const products = Array.from({ length: 60 }, (_, index) => ({ product_id: `product-${index}` }));
+  const calls = [];
+  const client = {
+    async call(operation, options) {
+      calls.push({ operation, options });
+      if (operation === 'listStores') return { items: [{ store_id: 'store-a' }] };
+      if (operation === 'listListings') return { items: [] };
+      if (operation === 'listCatalog') {
+        const { limit, offset } = options.query;
+        if (offset === 0) {
+          return { items: products.slice(0, 50), next_offset: 50 };
+        } else if (offset === 50) {
+          return { items: products.slice(50, 60), next_offset: 100 };
+        } else {
+          return { items: [], next_offset: null };
+        }
+      }
+    }
+  };
+
+  const result = await loadStorefront(client, { storeId: 'store-a' });
+  assert.equal(result.catalog.length, 60);
+
+  const catalogCalls = calls.filter(c => c.operation === 'listCatalog');
+  assert.equal(catalogCalls.length, 3);
+  assert.deepEqual(catalogCalls[0].options.query, { limit: 50, offset: 0 });
+  assert.deepEqual(catalogCalls[1].options.query, { limit: 50, offset: 50 });
+  assert.deepEqual(catalogCalls[2].options.query, { limit: 50, offset: 100 });
+});
+
+test('SDK listing queries filter listings properly and retrieve all available data', async () => {
+  const calls = [];
+  const client = {
+    async call(operation, options) {
+      calls.push({ operation, options });
+      if (operation === 'listCatalog') return { items: [], next_offset: null };
+      if (operation === 'listStores') return { items: [{ store_id: 'store-a' }, { store_id: 'store-b' }] };
+      if (operation === 'listListings') return {
+        items: [
+          { listing_id: 'l1', store_id: 'store-a' },
+          { listing_id: 'l2', store_id: 'store-b' },
+          { listing_id: 'l3', store_id: 'store-c' }
+        ]
+      };
+    }
+  };
+
+  const resultAll = await loadStorefront(client);
+  assert.deepEqual(resultAll.listings.map(l => l.listing_id), ['l1', 'l2']);
+
+  calls.length = 0;
+  const resultA = await loadStorefront(client, { storeId: 'store-a' });
+  assert.deepEqual(resultA.listings.map(l => l.listing_id), ['l1']);
+
+  const resultB = await loadStorefront(client, { storeId: 'store-b' });
+  assert.deepEqual(resultB.listings.map(l => l.listing_id), ['l2']);
+
+  const listingCalls = calls.filter(c => c.operation === 'listListings');
+  assert.equal(listingCalls.length, 2);
+  assert.equal(listingCalls[0].options, undefined);
+});
+
+test('search filtering is supported via listWorksPage (listCatalog has no search)', async () => {
+  const calls = [];
+  const client = {
+    async call(operation, options) {
+      calls.push({ operation, options });
+      if (operation === 'listWorksPage') {
+        return { items: [{ work_item_id: 'w1', title: 'Work 1', aggregate_version: 1 }], next_cursor: null };
+      }
+    }
+  };
+
+  const response = await client.call('listWorksPage', { query: { search: 'my-search-term', scope: 'all' } });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].operation, 'listWorksPage');
+  assert.equal(calls[0].options.query.search, 'my-search-term');
+  assert.equal(response.items[0].work_item_id, 'w1');
+});
