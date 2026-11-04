@@ -40,11 +40,11 @@ export async function loadStorefront(client, { storeId } = {}) {
     catalog.push(...rows(page, 'listCatalog'));
     offset = nextOffset;
   }
-  return structuredClone({
+  return {
     schema_version: '1', mode: 'internal_preview', generated_at: new Date().toISOString(),
     store_id: storeId ?? null, catalog, stores, listings,
     capabilities: { checkout: false, payments: false, public_publication: false, service_offers: false },
-  });
+  };
 }
 
 /** Register an internal store draft. SellerParty / public-store activation is a later API. */

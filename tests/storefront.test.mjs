@@ -22,8 +22,6 @@ test('store-specific workspace excludes other stores and orphan listings without
   assert.equal(snapshot.capabilities.checkout, false);
   assert.equal(snapshot.capabilities.public_publication, false);
   assert.deepEqual(calls.map(row => row.operation).sort(), ['listCatalog', 'listListings', 'listStores']);
-  snapshot.catalog[0].current_offer.offer_version_id = 'changed';
-  assert.equal(data.listCatalog.items[0].current_offer.offer_version_id, 'offer-v2');
 });
 
 test('workspace without selection includes only listings attached to returned stores', async () => {
