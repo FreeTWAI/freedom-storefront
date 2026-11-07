@@ -14,7 +14,7 @@ async function main() {
     if (!flags.has(key) || !value || value.startsWith('--') || options[key] !== undefined) throw new Error(`Invalid argument ${key}.\n${usage}`);
     options[key] = value;
   }
-  if (!templates[options['--template']] || !options['--input'] || !options['--output']) throw new Error(usage);
+  if (!Object.hasOwn(templates, options['--template']) || !options['--input'] || !options['--output']) throw new Error(usage);
   const input = await readFile(resolve(options['--input']), 'utf8');
   if (Buffer.byteLength(input) > 5_000_000) throw new Error('Snapshot exceeds the 5 MB preview limit.');
   const html = renderPreview(options['--template'], JSON.parse(input), { storeId: options['--store-id'], listingId: options['--listing-id'] });
