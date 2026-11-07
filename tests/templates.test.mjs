@@ -62,6 +62,9 @@ test('service-offer states unavailable and does not reinterpret physical catalog
 
 test('renderer refuses unsupported or public snapshots', () => {
   assert.throws(() => renderPreview('unknown', example), /Unknown/);
+  assert.throws(() => renderPreview('__proto__', example), /Unknown/);
+  assert.throws(() => renderPreview('toString', example), /Unknown/);
+  assert.throws(() => renderPreview('constructor', example), /Unknown/);
   assert.throws(() => renderPreview('master-store', { ...example, mode: 'public' }), /internal_preview/);
   assert.throws(() => renderPreview('master-store', { ...example, schema_version: '2' }), /schema_version/);
 });

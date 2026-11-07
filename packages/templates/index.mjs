@@ -3,7 +3,7 @@ import catalogStore from '../../templates/catalog-store/template.json' with { ty
 import singleProduct from '../../templates/single-product/template.json' with { type: 'json' };
 import serviceOffer from '../../templates/service-offer/template.json' with { type: 'json' };
 
-export const templates = Object.freeze(Object.fromEntries([masterStore, catalogStore, singleProduct, serviceOffer].map(value => [value.id, Object.freeze(value)])));
+export const templates = Object.freeze(Object.assign(Object.create(null), Object.fromEntries([masterStore, catalogStore, singleProduct, serviceOffer].map(value => [value.id, Object.freeze(value)]))));
 
 function escape(value = '') {
   return String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
@@ -17,7 +17,7 @@ function money(minor, currency) {
   return `${escape(currency)} ${(amount / 100).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-const statuses = { draft: '選品草稿', requested: '等待供貨商確認', accepted: '供貨已確認（內部演練）', declined: '供貨未接受' };
+const statuses = Object.freeze(Object.assign(Object.create(null), { draft: '選品草稿', requested: '等待供貨商確認', accepted: '供貨已確認（內部演練）', declined: '供貨未接受' }));
 
 function productCard(product) {
   const offer = product.current_offer ?? {}, supply = offer.snapshot ?? {};
@@ -31,8 +31,8 @@ function listingCard(listing) {
 
 /** Pure, network-free renderer. Only explicitly selected private snapshot data becomes HTML. */
 export function renderPreview(templateId, snapshot, { storeId, listingId } = {}) {
+  if (!Object.hasOwn(templates, templateId)) throw new TypeError('Unknown storefront template.');
   const template = templates[templateId];
-  if (!template) throw new TypeError('Unknown storefront template.');
   if (!snapshot || snapshot.schema_version !== '1' || snapshot.mode !== 'internal_preview') throw new TypeError('Expected an internal_preview snapshot with schema_version 1.');
   for (const field of ['catalog', 'stores', 'listings']) if (!Array.isArray(snapshot[field])) throw new TypeError(`Snapshot ${field} must be an array.`);
 
